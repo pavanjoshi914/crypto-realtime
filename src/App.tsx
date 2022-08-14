@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { formatData } from './utils/formatData';
 
 
 
@@ -93,8 +94,9 @@ function App() {
         console.log(dataArr);
 
       // after getting data in form of json format data and , set state using the hook setpastData
-      // format data function to be implemented
-      setpastData(dataArr);
+      // format data function to be implemented - done
+      let formattedData = formatData(dataArr);
+      setpastData(formattedData);
     };
 
 
