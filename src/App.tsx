@@ -116,22 +116,40 @@ function App() {
       }
     };
   }, [pair]); 
+
+  // to subscribe to new currency-pair
+  const handleSelect = (e) => {
+    // unsubscribe to the previous currency pair which was subscribed by the user
+    let unsubMsg = {
+      type: "unsubscribe",
+      product_ids: [pair],
+      channels: ["ticker"]
+    };
+    let unsub = JSON.stringify(unsubMsg);
+    // send msg to coinbase
+    ws.current.send(unsub);
+
+    // subscribe to new currency pair
+    setpair(e.target.value);
+  };
   
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <div className="container">
+      {
+        <select name="currency" value={pair} onChange={handleSelect}>
+          {currencies.map((cur, idx) => {
+            return (
+              <option key={idx} value={cur.id}>
+                {cur.display_name}
+              </option>
+            );
+          })}
+        </select>
+      }
+    </div>
       </header>
     </div>
   );
