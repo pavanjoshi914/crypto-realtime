@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { formatData } from './utils/formatData';
-
-
+import Dashboard from "./components/Dashboard";
+import "./styles.css";
 
 function App() {
  
@@ -90,13 +90,17 @@ function App() {
       let dataArr = [];
       await fetch(historicalDataURL)
         .then((res) => res.json())
-        .then((data) => (dataArr = data));
-        console.log(dataArr);
-
+        .then((data) => {(dataArr = data)
+          //
       // after getting data in form of json format data and , set state using the hook setpastData
       // format data function to be implemented - done
-      let formattedData = formatData(dataArr);
-      setpastData(formattedData);
+      // keep this in callback function so that array is not passed as undefined to format data function and map not defined error is cured
+          let formattedData = formatData(dataArr);
+          setpastData(formattedData);
+        });
+        console.log(dataArr);
+
+   
     };
 
 
@@ -129,16 +133,14 @@ function App() {
     };
     let unsub = JSON.stringify(unsubMsg);
     // send msg to coinbase
-    ws.current.send(unsub);
-
+    // wait till connection is created by the websocket then execute it
+    ws.current.onopen = () => ws.current.send(unsub);
     // subscribe to new currency pair
     setpair(e.target.value);
   };
   
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+    
         <div className="container">
       {
         <select name="currency" value={pair} onChange={handleSelect}>
@@ -151,9 +153,9 @@ function App() {
           })}
         </select>
       }
+      <Dashboard price={price} data={pastData} />
     </div>
-      </header>
-    </div>
+      
   );
 }
 

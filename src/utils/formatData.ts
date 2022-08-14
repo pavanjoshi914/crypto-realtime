@@ -15,7 +15,7 @@ export const formatData = (data) => {
       ]
     };
   // format date data coming from coinbase in month, year , date , day
-    let dates = data.map((val) => {
+    let dates = (data ?? []).map((val) => {
       const ts = val[0];
       let date = new Date(ts * 1000);
       let day = date.getDate();
@@ -27,7 +27,7 @@ export const formatData = (data) => {
     });
 
   // grabs number values for price high , price low etc
-    let priceArr = data.map((val) => {
+    let priceArr = (data ?? []).map((val) => {
       return val[4];
     });
 
