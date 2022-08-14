@@ -61,6 +61,62 @@ function App() {
     apiCall();
     // empty array used for the dependency on useEffect, so that every time state gets updated, hook doesnt rerun. avoiding infinite loop
   }, []);
+
+    // hooks runs only when state changes occur
+    useEffect(() => {
+      // we dont make api call when we have a state already selected on first render
+    if (!first.current) {
+      console.log('returning on first render')
+      return;
+    }
+    //create msg object, using which we subscribe to the pair of currency we selected
+    //also stores ticker data for the web hooks
+    let msg = {
+      type: "subscribe",
+      product_ids: [pair],
+      channels: ["ticker"]
+    };
+    // convert javascript object to json
+    let jsonMsg = JSON.stringify(msg);
+    // send that data using web socket in form of json
+    ws.current.send(jsonMsg);
+
+    // to fetch historical data of the current selected pair
+    // granularity set to 86400 seconds which gives daily price chart
+    let historicalDataURL = `${url}/products/${pair}/candles?granularity=86400`;
+    // fetches historical data
+    const fetchHistoricalData = async () => {
+      let dataArr = [];
+      await fetch(historicalDataURL)
+        .then((res) => res.json())
+        .then((data) => (dataArr = data));
+        console.log(dataArr);
+
+      // after getting data in form of json format data and , set state using the hook setpastData
+      // format data function to be implemented
+      setpastData(dataArr);
+    };
+
+
+    // call the function
+    fetchHistoricalData();
+    // every time price of currency updates on coinbase, a message is received through the websocket
+
+    ws.current.onmessage = (e) => {
+      // convert to javascript object, check type of event is ticker event, if not then return
+      let data = JSON.parse(e.data);
+      if (data.type !== "ticker") {
+        console.log('non ticker event',e);
+        return;
+      }
+      // if ticker event, and matches with product id of the currently selected pair, update the price using setprice hook
+      if (data.product_id === pair) {
+        console.log('id is matched');
+        setprice(data.price);
+      }
+    };
+  }, [pair]); 
+  
   return (
     <div className="App">
       <header className="App-header">
