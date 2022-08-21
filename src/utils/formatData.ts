@@ -1,6 +1,7 @@
+
+
 // to format currency pairs received from coinbase
 export const formatData = (data) => {
-
     // formated data containing labels and dataset. formating data to display on chart
     let finalData = {
       labels: [],
@@ -8,14 +9,15 @@ export const formatData = (data) => {
         {
           label: "Price",
           data: [],
-          backgroundColor: "rgb(255, 99, 132, 0.8)",
-          borderColor: "rgba(255, 99, 132, 0.2)",
-          fill: false
+          //backgroundColor: "linear-gradient(red, yellow)",
+          borderColor: "rgba(255, 156, 0, 0.5)",
+          fill: true,
         }
       ]
     };
   // format date data coming from coinbase in month, year , date , day
-    let dates = (data ?? []).map((val) => {
+  console.log(data);
+    let dates = data?.map((val) => {
       const ts = val[0];
       let date = new Date(ts * 1000);
       let day = date.getDate();
@@ -27,7 +29,7 @@ export const formatData = (data) => {
     });
 
   // grabs number values for price high , price low etc
-    let priceArr = (data ?? []).map((val) => {
+    let priceArr = data?.map((val) => {
       return val[4];
     });
 
