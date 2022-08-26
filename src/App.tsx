@@ -3,13 +3,15 @@ import './App.css';
 import { formatData } from './utils/formatData';
 import Dashboard from "./components/Dashboard";
 import "./styles.css";
-import { requestProvider } from './utils/webln/client';
-import  {ExportMetadata}   from "./assets/hashes/JSONConstructor"
+import  {ExportMetadata, JsonConstructor}   from "./assets/hashes/JSONConstructor"
 import {requestInvoice} from './lnurl-pay/request-invoice';
 import { Satoshis } from './lnurl-pay/types';
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import { Container } from 'react-dom';
+import { hashes } from './assets/hashes/ImageHashes';
+
+let currentTargetPair;
 
 const enum WebSocketReadyState {
   /** The connection is not yet open. */
@@ -37,8 +39,11 @@ function App() {
     
   const ws = useRef(null);
 
+  const [count, setCount] = useState(0);
+
   // to prevent api call on first rendering of the component
   let first = useRef(false);
+
   // we use coinbase api to get realtime data, base url to make api calls
   const url = "https://api.pro.coinbase.com";
 
@@ -149,6 +154,7 @@ function App() {
 
   // to subscribe to new currency-pair
   const handleSelect = (e) => {
+
     // unsubscribe to the previous currency pair which was subscribed by the user
     let unsubMsg = {
       type: "unsubscribe",
@@ -161,7 +167,13 @@ function App() {
     ws.current.onopen = () => ws.current.readyState === WebSocketReadyState.OPEN &&  ws.current.send(unsub);
     // subscribe to new currency pair
     setpair(e.target.value);
+    setCount(current => current + 1);
+
+     currentTargetPair = e.target.value;
+  
+    
   };
+
 
   useEffect(()=>{
 
@@ -171,79 +183,7 @@ function App() {
   })
 
 
-  async function pay(song: object) {
-    const tokenvalue: Satoshis = 10 as Satoshis;
-    const { invoice } =
-    await requestInvoice({
-      lnUrlOrAddress: "pavanj@getalby.com",
-      tokens: tokenvalue,
-      comment: "Buy Song",
-    });
   
-  
-    type ObjectKey = keyof typeof song;
-  
-  const songSrc: string = song['src' as ObjectKey];
-  
-    console.log(song);
-  
-    const webln = await requestProvider();
-    console.log(webln);
-    if(!webln) {
-      return;
-    }
-    requestProvider()
-        .then(function(webln) {
-          // returns weblnProvider object which contains all the methods defined example send payment, execute, verifySignMessage etc etc
-          // we will define specification used by lnurl metadata here as well.
-          console.log(webln)
-  
-          console.log(song);
-        
-          //// Metadata json array which must be presented as raw string here, this is required to pass signature verification at a later step
-          /// we need way to convert json array into raw string, decode it on wallet side and then render it.
-          //https://github.com/fiatjaf/lnurl-rfc/blob/luds/06.md type of metadata that is also to be decided
-  
-          // metadata prepared as json format, passed as string
-  
-          const metadataString =JSON.stringify(ExportMetadata())
-  
-          console.log(metadataString);
-          const timeout = document.getElementById('content') as HTMLDivElement;
-          function hideElement() {
-            timeout.style.display = 'none'
-          }
-          return webln.sendPayment(invoice, metadataString)
-            .then(function(r) {
-              // required this constraint to protect metadata in empty invoices as a rule
-              if(r !== undefined){
-                const contentDiv = document.getElementById('content') as HTMLDivElement;
-              contentDiv.innerHTML = "YAY, thanks!";
-              setTimeout(hideElement, 5000) //milliseconds until timeout//
-              
-            console.log('done', r);
-  
-              const a = document.createElement('a')
-    a.href = songSrc
-    a.download = songSrc.split('/').pop() as string
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  
-            }
-            })
-            .catch(function(e) {
-              alert("Failed: " + e.message);
-              console.log('err pay:', e);
-            });
-      })
-      .catch(function(e) {
-        alert("Webln error, check console");
-        console.log('err, provider', e);
-      });
-  }
-  
-
   const particlesInit = useCallback(async (engine) => {
     console.log(engine);
 
@@ -356,8 +296,8 @@ function App() {
         </select>}
         </div>
       }
-      <Dashboard price={price} data={pastData} />
-      <div><button className="glow-on-hover position-button" onClick={() =>pay({})}>Donate</button></div>
+      <Dashboard price={price} data={pastData} currentTargetPair={currentTargetPair} />
+      
     </div>
       
   );
